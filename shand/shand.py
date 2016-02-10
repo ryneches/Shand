@@ -5,7 +5,7 @@ import ProgressBar
 import skbio
 from os.path import splitext
 
-class problem(object) :
+class Problem(object) :
     def __init__( self ) :
         pass
     def add_reads( self, reads, read_name_sep='_' ) :
@@ -21,7 +21,8 @@ class problem(object) :
                       sep='\t', drop_cols=None ) :
         '''
         One of the columns must have host names which match the names
-        in the host tree.
+        found in the host tree. By default it's 'Host', but you can
+        change it.
         '''
         df = pd.DataFrame.from_csv( metadata_file, sep=sep )
         if drop_cols :
@@ -38,7 +39,7 @@ class problem(object) :
         if shear :
             tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
         self.host_tree = tree
-    def unique( self, cutoff=2 ) :
+    def run( self, cutoff=2 ) :
         print 'building trie...'
         self.trie = Trie()
         p = ProgressBar.ProgressBar( len( self.db ) )
@@ -66,7 +67,7 @@ class problem(object) :
         for n,record in enumerate( self.trie.keys() ) :
             if n % 10000 == 0 : p.animate( n + 1 )
             OTUs = self.trie[record]
-            counts[ OTUs[0] ] = map( lambda x : map( lambda x : x.split('_')[0], OTUs ).count(x), phase_1.index )    
+            counts[ OTUs[0] ] = map( lambda x : map( lambda x : x.split(self.read_name_sep)[0], OTUs ).count(x), self.sample_ids )    
         self.count_table = pd.DataFrame( counts, index=self.sample_ids )
         self.abundance_table = self.count_table.div( self.count_table.sum( axis=1 ), axis=0 )
         # Take the OTU counts for host taxa with more than one 

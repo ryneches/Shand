@@ -1,1 +1,1 @@
-from shand import problem
+from shand import Problem
