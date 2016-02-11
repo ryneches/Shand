@@ -13,6 +13,6 @@ setup(name='shand',
         'pandas',
         'screed',
         'hat_trie',
-        'skbio'
+        'scikit-bio'
       ],      
       zip_safe=False)
