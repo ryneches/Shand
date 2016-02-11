@@ -79,4 +79,4 @@ class Problem(object) :
                                           pd.DataFrame( self.metadata[self.host_col] ),
                                           right_index=True,
                                           left_index=True ).groupby( self.host_col ).sum()
-        self.host_abundance_table = self.host_count_table.div( self.host_counts_table.sum(axis=1), axis=0)
+        self.host_abundance_table = self.host_count_table.div( self.host_count_table.sum(axis=1), axis=0)
