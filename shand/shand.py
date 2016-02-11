@@ -51,7 +51,7 @@ class Problem(object) :
                 if not self.trie.__contains__( seq ) : self.trie[seq] = []
                 self.trie[seq].append( name ) 
         print 'writing uniqued records with at least ' + str(cutoff) + ' instances...'
-        p = ProgressBar.ProgressBar(len(trie.keys()))
+        p = ProgressBar.ProgressBar(len(self.trie.keys()))
         basename = splitext( self.reads_path )[0] + '_unique_' + str(cutoff)
         with open( basename + '.fasta', 'w' ) as f1, \
              open( basename + '.txt',   'w' ) as f2 :
