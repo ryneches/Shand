@@ -43,7 +43,7 @@ class Problem(object) :
             tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
         self.host_tree = tree
     def run( self, cutoff=2 ) :
-        print 'building trie...'
+        print 'building trie...\n'
         self.trie = Trie()
         p = ProgressBar.ProgressBar( len( self.db ) )
         for n,name in enumerate( self.db ) :
@@ -53,7 +53,7 @@ class Problem(object) :
                 seq = unicode( self.db[name].sequence )
                 if not self.trie.__contains__( seq ) : self.trie[seq] = []
                 self.trie[seq].append( name ) 
-        print 'writing uniqued records with at least ' + str(cutoff) + ' instances...'
+        print 'writing uniqued records with at least ' + str(cutoff) + ' instances...\n'
         p = ProgressBar.ProgressBar(len(self.trie.keys()))
         basename = splitext( self.reads_path )[0] + '_unique_' + str(cutoff)
         with open( basename + '.fasta', 'w' ) as f1, \
@@ -64,7 +64,7 @@ class Problem(object) :
                 if len(records) >= cutoff :
                     f1.write( '>' + records[0] + '\n' + seq + '\n' )
                     f2.write( ','.join(records) + '\n' )
-        print 'bulding count table...'
+        print 'bulding count table...\n'
         p = ProgressBar.ProgressBar( len( self.trie.keys() ) )
         counts = {}
         for n,record in enumerate( self.trie.keys() ) :
