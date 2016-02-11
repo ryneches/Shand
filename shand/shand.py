@@ -3,14 +3,17 @@ from screed import read_fasta_sequences, ScreedDB
 from hat_trie import Trie
 import ProgressBar
 import skbio
-from os.path import splitext
+from os.path import splitext, exists
 
 class Problem(object) :
     def __init__( self ) :
         pass
     def add_reads( self, reads, read_name_sep='_' ) :
-        print 'indexing records...'
-        read_fasta_sequences(reads)
+        if exists( reads + '_screed' ) :
+            print 'reads previously indexed.'
+        else :
+            print 'indexing records...'
+            read_fasta_sequences(reads)
         print 'building database...'
         db = ScreedDB(reads)
         self.db = db
