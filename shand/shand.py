@@ -39,9 +39,13 @@ class Problem(object) :
             self.sample_ids = df.index
     def add_host_tree( self, host_tree_file, shear=True ) :
         tree = skbio.tree.TreeNode.read(host_tree_file)
-        if shear :
-            tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
-        self.host_tree = tree
+        leftovers = set(self.metadata[self.host_col]) - set([ tip.name for tip in tree.tips() ])
+        if not leftovers :
+            if shear :
+                tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
+            self.host_tree = tree
+        else :
+            raise Exception('metadata contains species not found in host tree : ' + ', '.join(leftovers))
     def run( self, cutoff=2 ) :
         print 'building trie...\n'
         self.trie = Trie()
