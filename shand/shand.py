@@ -70,6 +70,7 @@ class Problem(object) :
         for n,record in enumerate( self.trie.keys() ) :
             if n % 10000 == 0 : p.animate( n + 1 )
             OTUs = self.trie[record]
+            if not len(OTUs) >= cutoff : continue
             counts[ OTUs[0] ] = map( lambda x : map( lambda x : x.split(self.read_name_sep)[0], OTUs ).count(x), self.sample_ids )    
         self.count_table = pd.DataFrame( counts, index=self.sample_ids )
         self.abundance_table = self.count_table.div( self.count_table.sum( axis=1 ), axis=0 )
