@@ -121,26 +121,32 @@ the set of sample names to the set of host taxa.
 ### Running the pipeline
 
 You can run Shand from within Python or from the command line. I
-recommend running from withing Python using a [`jupyter`] notebook.
-If you have to manipulate your data to get it ready to put into Shand,
-a notebook will help keep a record of that.
+recommend running from withing Python using a [`jupyter`](http://jupyter.org/)
+notebook. If you have to manipulate your data to get it ready to put 
+into Shand, a notebook will help keep a record of that.
 
 #### Create problem plan 
 
+    ```python    
     import shand
     myproject = shand.Problem() 
+    ```
 
 ##### Attach the read data
 
 First, attach the read data :
 
+    ```python
     myproject.add_reads( 'mydata.fasta' )
+    ```
 
 If the read names are separated from the read number by something
 other than an underscore (`'_'`), you can specify a different
 separator :
 
+    ```python
     myproject.add_reads( 'mydata.fasta.gz', read_name_sep='|' )
+    ```
 
 This will use `screed` to index the reads. A new file with the suffix
 `_screed` will be created in the same directory as the reads, so you
@@ -156,22 +162,30 @@ just a CSV file that maps sample names to host taxa. If you have a
 `QIIME`-like mapping file with tabs as separators and the host taxa
 names in a column named 'Host' :
 
+    ```python
     myproject.add_metadata( 'mapping.txt' )    
+    ```
 
 If you have a separate column for the names that appear in the `fasta`
 file containing your reads :
 
+    ```python
     myproject.add_metadata( 'mapping.txt', sample_id_col='ReadNames' )
+    ```
 
 If the column containing host taxa assignments is named something
 other than 'Host', you can specify that :
 
+    ```python
     myproject.add_metadata( 'mapping.txt', host_col='Species' )
+    ```
 
 If you aren't using a tab delimited table, you can specify a different
 separator :
 
+    ```python
     myproject.add_metadata( 'mapping.csv', sep=',' )
+    ```
 
 You may, of course, combine any of these options.
 
@@ -179,7 +193,9 @@ You may, of course, combine any of these options.
 
 Next, attach the host tree :
 
+    ```python
     myproject.add_host_tree( 'host_tree.nwk' )
+    ```
 
 The host tree must be in `NEWICK` format, and the names must exactly
 match those that appear in your metadata. The host tree may contain
@@ -192,7 +208,9 @@ will report this as an error.
 
 Now that all the data is attached, run the pipeline :
 
+    ```python
     myproject.run()
+    ```
 
 The following operations will then be carried out :
 
@@ -203,12 +221,23 @@ identified. This discards sequences that cannot be distinguished from
 sequencing errors. If you want to change this threshold, run the
 pipeline like so :
 
+    ```python
     myproject.run( cutoff=4 ) 
+    ```
 
 This will discard sequences that appear four or fewer times.
 
 After unique sequnces are identified, four new `pandas` `DataFrames`
 will be attached to the problem object. 
+
+* `myproject.count_table`          : raw counts of each sequence for each sample
+* `myproject.abundance_table`      : relative abundance of each sequence for each sample
+* `myproject.host_count_table`     : raw counts of each sequence for each host
+* `myproject.host_abundance_table` : relative abundance of each sequence for each host 
+
+This is similar to an OTU table, except that no clustering has been
+performed (if it makes you feel better, you can think of them as OTUs
+with a 100% identify threshold). 
 
 ##### Align unique reads
 
