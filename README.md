@@ -127,26 +127,26 @@ into Shand, a notebook will help keep a record of that.
 
 #### Create problem plan 
 
-    ```python    
-    import shand
-    myproject = shand.Problem() 
-    ```
+```python    
+import shand
+myproject = shand.Problem() 
+```
 
 ##### Attach the read data
 
 First, attach the read data :
 
-    ```python
-    myproject.add_reads( 'mydata.fasta' )
-    ```
+```python
+myproject.add_reads( 'mydata.fasta' )
+```
 
 If the read names are separated from the read number by something
 other than an underscore (`'_'`), you can specify a different
 separator :
 
-    ```python
-    myproject.add_reads( 'mydata.fasta.gz', read_name_sep='|' )
-    ```
+```python
+myproject.add_reads( 'mydata.fasta.gz', read_name_sep='|' )
+```
 
 This will use `screed` to index the reads. A new file with the suffix
 `_screed` will be created in the same directory as the reads, so you
@@ -162,30 +162,30 @@ just a CSV file that maps sample names to host taxa. If you have a
 `QIIME`-like mapping file with tabs as separators and the host taxa
 names in a column named 'Host' :
 
-    ```python
-    myproject.add_metadata( 'mapping.txt' )    
-    ```
+```python
+myproject.add_metadata( 'mapping.txt' )    
+```
 
 If you have a separate column for the names that appear in the `fasta`
 file containing your reads :
 
-    ```python
-    myproject.add_metadata( 'mapping.txt', sample_id_col='ReadNames' )
-    ```
+```python
+myproject.add_metadata( 'mapping.txt', sample_id_col='ReadNames' )
+```
 
 If the column containing host taxa assignments is named something
 other than 'Host', you can specify that :
 
-    ```python
-    myproject.add_metadata( 'mapping.txt', host_col='Species' )
-    ```
+```python
+myproject.add_metadata( 'mapping.txt', host_col='Species' )
+```
 
 If you aren't using a tab delimited table, you can specify a different
 separator :
 
-    ```python
-    myproject.add_metadata( 'mapping.csv', sep=',' )
-    ```
+```python
+myproject.add_metadata( 'mapping.csv', sep=',' )
+```
 
 You may, of course, combine any of these options.
 
@@ -193,9 +193,9 @@ You may, of course, combine any of these options.
 
 Next, attach the host tree :
 
-    ```python
-    myproject.add_host_tree( 'host_tree.nwk' )
-    ```
+```python
+myproject.add_host_tree( 'host_tree.nwk' )
+```
 
 The host tree must be in `NEWICK` format, and the names must exactly
 match those that appear in your metadata. The host tree may contain
@@ -208,9 +208,9 @@ will report this as an error.
 
 Now that all the data is attached, run the pipeline :
 
-    ```python
-    myproject.run()
-    ```
+```python
+myproject.run()
+```
 
 The following operations will then be carried out :
 
@@ -221,9 +221,9 @@ identified. This discards sequences that cannot be distinguished from
 sequencing errors. If you want to change this threshold, run the
 pipeline like so :
 
-    ```python
-    myproject.run( cutoff=4 ) 
-    ```
+```python
+myproject.run( cutoff=4 ) 
+```
 
 This will discard sequences that appear four or fewer times.
 
