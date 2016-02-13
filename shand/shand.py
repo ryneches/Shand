@@ -39,6 +39,7 @@ class Problem(object) :
             self.sample_ids = df.index
     def add_host_tree( self, host_tree_file, shear=True ) :
         tree = skbio.tree.TreeNode.read(host_tree_file)
+        # fail if there are missing taxa in the host tree
         leftovers = set(self.metadata[self.host_col]) - set([ tip.name for tip in tree.tips() ])
         if not leftovers :
             if shear :
