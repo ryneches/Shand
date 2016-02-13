@@ -1,7 +1,7 @@
 import subprocess
 from os.path import splitext
 
-def clustalo( fasta_file, threads=1 )
+def clustalo( fasta_file, threads=1 ) :
     
     base = splitext(fasta_file)
     alignment_file = base + '_clustalo.fasta'
