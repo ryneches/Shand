@@ -3,7 +3,7 @@ from os.path import splitext
 
 def clustalo( fasta_file, threads=1 ) :
     
-    base = splitext(fasta_file)
+    base = splitext(fasta_file)[0]
     alignment_file = base + '_clustalo.fasta'
     log_file = '_clustalo.log'
 
