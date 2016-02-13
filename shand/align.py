@@ -9,6 +9,7 @@ def clustalo( fasta_file, threads=1 ) :
 
     args = ['clustalo', '-v',
             '-i', fasta_file,
+            '--outfmt=fasta',
             '--threads=' + str(threads),
             '-o', alignment_file,
             '-l', log_file ]
