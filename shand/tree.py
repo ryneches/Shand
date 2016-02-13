@@ -7,7 +7,7 @@ def fasttree( alignment_file, threads=1 ) :
     tree_file = base + '_fasttree.tree'
     log_file = base + '_fasttree.log'
 
-    args = ['FastTreeMp', '-nt', '-gtr', 
+    args = ['FastTreeMP', '-nt', '-gtr', 
             '-log', log_file ] 
 
     with open( tree_file, 'w' ) as outfile:
