@@ -100,7 +100,17 @@ class Problem(object) :
         self.host_abundance_table = self.host_count_table.div( self.host_count_table.sum(axis=1), axis=0)
         
         # build alignment
+        print 'building alignment...'
         self.alignment_file = clustalo( self.unique_seq_file, threads=self.threads )
-        # build tree
-        self.guest_tree = fasttree( self.alignment_file, threads=self.threads )
         
+        # build tree
+        print 'bulding guest tree...'
+        self.guest_tree_file = fasttree( self.alignment_file, threads=self.threads )
+        
+        # load guest tree
+        print 'loading guest tree...'
+        self.guest_tree = skbio.tree.NodeTree.read( self.guest_tree_file )
+        print 'computing patristic distances...'
+        self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
+
+
