@@ -44,7 +44,7 @@ class Problem(object) :
         newick_reserved = set( [ '[', ']', '(', ')', ',', ';', ':', ' ', '\t' ] )
         newick_clash = reduce( lambda a,b : a|b, map( set, self.sample_ids ) ) & newick_reserved
         if newick_clash :
-            raise Exception('sample IDs contain reserved characters : ' + ' '.join( newick_clash ) )
+            raise Exception('sample IDs contain reserved characters : ' + str(newick_clash) )
         
     def add_host_tree( self, host_tree_file ) :
         tree = skbio.tree.TreeNode.read(host_tree_file)
