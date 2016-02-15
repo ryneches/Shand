@@ -37,6 +37,13 @@ class Problem(object) :
             self.sample_ids = df[sample_id_col]
         else :
             self.sample_ids = df.index
+        
+        # fail if there are NEWICK reserved characters in sample names
+        newick_reserved = set( [ '[', ']', '(', ')', ',', ';', ':', ' ', '\t' ] )
+        newick_clash = reduce( lambda a,b : a|b, map( set, self.sample_ids ) ) & newick_reserved :
+        if newick_clash :
+            raise Exception('sample IDs contain reserved characters : ' + ' '.join( newick_clash ) )
+        
     def add_host_tree( self, host_tree_file, shear=True ) :
         tree = skbio.tree.TreeNode.read(host_tree_file)
         # fail if there are missing taxa in the host tree
