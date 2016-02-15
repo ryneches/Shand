@@ -1,7 +1,7 @@
 import pandas as pd
 from screed import read_fasta_sequences, ScreedDB
 from hat_trie import Trie
-import ProgressBar
+import pyprind
 import skbio
 from os.path import splitext, exists
 from align import clustalo
@@ -57,38 +57,40 @@ class Problem(object) :
         else :
             raise Exception('metadata contains species not found in host tree : ' + ', '.join(leftovers))
     def run( self, cutoff=2 ) :
-        print 'building trie...\n'
+        bar_title = 'building trie...'
         self.trie = Trie()
-        p = ProgressBar.ProgressBar( len( self.db ) )
+        p = pyprind.ProgBar( len( self.db ), monitor=True, title=bar_title )
         for n,name in enumerate( self.db ) :
-            if n % 10000 == 0 : p.animate( n + 1 )
+            p.update()
             demul_name, readnumber = name.split( self.read_name_sep )
             if demul_name in self.sample_ids :
                 seq = unicode( self.db[name].sequence )
                 if not self.trie.__contains__( seq ) : self.trie[seq] = []
                 self.trie[seq].append( name ) 
-        print 'writing uniqued records with at least ' + str(cutoff) + ' instances...\n'
-        p = ProgressBar.ProgressBar(len(self.trie.keys()))
+        print(p)
         basename = self.name + '_unique_' + str(cutoff)
-        
         self.unique_seq_file = basename + '.fasta'
         self.unique_seq_to_sample_file = basename + '.txt'
+        bar_title = 'writing uniqued records with at least ' + str(cutoff) + ' instances...'
+        p = pyprind.ProgBar( len(self.trie.keys()), monitor=True, title=bar_title )
         with open( self.unique_seq_file,           'w' ) as f1, \
              open( self.unique_seq_to_sample_file, 'w' ) as f2 :
             for n,seq in enumerate( self.trie.keys() ) :
-                if n % 10000 == 0 : p.animate( n + 1 )
+                p.update()
                 records = self.trie[seq]
                 if len(records) >= cutoff :
                     f1.write( '>' + records[0] + '\n' + seq + '\n' )
                     f2.write( ','.join(records) + '\n' )
-        print 'bulding count table...\n'
-        p = ProgressBar.ProgressBar( len( self.trie.keys() ) )
+        print(p)
+        bar_title = 'bulding count table...'
+        p = pyprind.ProgBar( len( self.trie.keys() ), monitor=True, title=bar_title )
         counts = {}
         for n,record in enumerate( self.trie.keys() ) :
-            if n % 10000 == 0 : p.animate( n + 1 )
+            p.update()
             OTUs = self.trie[record]
             if not len(OTUs) >= cutoff : continue
             counts[ OTUs[0] ] = map( lambda x : map( lambda x : x.split(self.read_name_sep)[0], OTUs ).count(x), self.sample_ids )    
+        print(p)
         self.count_table = pd.DataFrame( counts, index=self.sample_ids )
         self.abundance_table = self.count_table.div( self.count_table.sum( axis=1 ), axis=0 )
         # Take the OTU counts for host taxa with more than one 

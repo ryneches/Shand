@@ -13,6 +13,8 @@ setup(name='shand',
         'pandas',
         'screed',
         'hat_trie',
-        'scikit-bio'
+        'scikit-bio',
+        'pyprind',
+        'psutil'
       ],      
       zip_safe=False)
