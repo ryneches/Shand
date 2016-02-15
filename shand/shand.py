@@ -3,6 +3,7 @@ from screed import read_fasta_sequences, ScreedDB
 from hat_trie import Trie
 import pyprind
 import skbio
+from skbio.stats.evolve import hommola_cospeciation
 from os.path import splitext, exists
 from align import clustalo
 from tree import fasttree
@@ -54,6 +55,7 @@ class Problem(object) :
         if not leftovers :
             tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
             self.host_tree = tree
+            self.host_tree_dmatrix = tree.tip_tip_distances()
         else :
             raise Exception('metadata contains species not found in host tree : ' + ', '.join(leftovers))
     def run( self, cutoff=2 ) :
@@ -111,6 +113,32 @@ class Problem(object) :
         
         # load guest tree
         print 'loading guest tree...'
-        self.guest_tree = skbio.tree.TreeNode.read( self.guest_tree_file )
+        self.guest_tree = skbio.tree.TreeNode.read( self.guest_tree_file, 
+                                                    convert_underscores=False )
         print 'computing patristic distances...'
         self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
+        
+        # compute Hommola cospeciation
+        internal_nodes = [ tip for tip in self.guest_tree.non_tips() ]
+        # ignore clades smaller than 3
+        internal_nodes = filter( lambda x : len([ tip for tip in x.tips()]) > 3, internal_nodes )
+        bar_title = 'computing Hommola cospeciation for sub-clades...'
+        p = pyprind.ProgBar( len(internal_nodes), monitor=True, title=bar_title )
+        data = []
+        for node in self.guest_tree.non_tips() :
+            p.update()
+            leafs = node.subset()
+            PD = self.guest_tree_dmatrix.filter( leafs )
+            links = self.host_count_table[ list( leafs ) ].T
+            n_links = len( filter( bool, links.values.flatten() ) )
+            if n_links < 3 : continue
+            if links.shape[0] < 3 : continue 
+            if PD.shape[0] < 3 : continue
+            data.append( ( node, 
+                           hommola_cospeciation( self.host_tree_dmatrix, 
+                                                 PD,
+                                                 links,
+                                                 permutations=10 ) ) )
+        
+        for node,result in data :
+            print node.count(), result[0], result[1]
