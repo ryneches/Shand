@@ -14,4 +14,5 @@ def clustalo( fasta_file, threads=1 ) :
             '-o', alignment_file,
             '-l', log_file ]
 
+    subprocess.call( args )
     return alignment_file

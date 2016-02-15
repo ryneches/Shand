@@ -114,7 +114,7 @@ parser_run.add_argument( '--read-name-sep',
                          required = False,
                          help = 'sample/sequence separator (default : \'_\')' )
 
-parser_run.set_defaults( metadata_sep = '_' )
+parser_run.set_defaults( read_name_sep = '_' )
 
 parser_run.add_argument( '--drop-cols',
                          action = 'store',

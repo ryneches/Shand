@@ -9,7 +9,7 @@ from tree import fasttree
 
 class Problem(object) :
     def __init__( self, threads=1 ) :
-        self.thrads = threads
+        self.threads = threads
     def add_reads( self, reads, read_name_sep='_' ) :
         if exists( reads + '_screed' ) :
             print 'reads previously indexed.'
@@ -108,8 +108,6 @@ class Problem(object) :
         
         # load guest tree
         print 'loading guest tree...'
-        self.guest_tree = skbio.tree.NodeTree.read( self.guest_tree_file )
+        self.guest_tree = skbio.tree.TreeNode.read( self.guest_tree_file )
         print 'computing patristic distances...'
         self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
-
-
