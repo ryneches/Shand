@@ -42,17 +42,16 @@ class Problem(object) :
         
         # fail if there are NEWICK reserved characters in sample names
         newick_reserved = set( [ '[', ']', '(', ')', ',', ';', ':', ' ', '\t' ] )
-        newick_clash = reduce( lambda a,b : a|b, map( set, self.sample_ids ) ) & newick_reserved :
+        newick_clash = reduce( lambda a,b : a|b, map( set, self.sample_ids ) ) & newick_reserved
         if newick_clash :
             raise Exception('sample IDs contain reserved characters : ' + ' '.join( newick_clash ) )
         
-    def add_host_tree( self, host_tree_file, shear=True ) :
+    def add_host_tree( self, host_tree_file ) :
         tree = skbio.tree.TreeNode.read(host_tree_file)
         # fail if there are missing taxa in the host tree
         leftovers = set(self.metadata[self.host_col]) - set([ tip.name for tip in tree.tips() ])
         if not leftovers :
-            if shear :
-                tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
+            tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
             self.host_tree = tree
         else :
             raise Exception('metadata contains species not found in host tree : ' + ', '.join(leftovers))

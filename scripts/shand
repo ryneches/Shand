@@ -1,3 +1,137 @@
 #!/usr/bin/env python
 
-print 'this will eventually do something.'
+import shand
+import argparse
+
+try :
+    import argcomplete
+    argcomplete_present = True
+except ImportError :
+    argcomplete_present = False
+
+# entry point functions for sub-commands
+
+def test( args ) :
+    """
+    Test the pipeline.
+    """
+    print 'testing shand pipeline...'
+
+def run( args ) :
+    """
+    Run the pipeline.
+    """
+    if args.drop_cols :
+        drop_cols = args.drop_cols.split(',')
+
+    print 'creating problem container...'
+    p = shand.Problem( threads=args.threads )
+    p.add_reads( args.reads_file, read_name_sep=args.read_name_sep )
+    p.add_metadata( args.metadata_file, 
+                    sample_id_col=args.sample_id_col,
+                    host_col=args.host_col,
+                    sep=args.metadata_sep,
+                    drop_cols=drop_cols )
+    p.add_host_tree( args.host_tree_file )  
+    print 'running pipeline...'
+    p.run( cutoff=args.cutoff )
+
+# build the parser...
+
+parser = argparse.ArgumentParser(
+    description = 'A pipeline for investigating cospeciation in microbiomes',
+    prog = 'shand' )
+
+subparsers = parser.add_subparsers( help = '', title = 'commands' )
+
+# subcommand 'test' parser
+
+parser_test = subparsers.add_parser( 'test',
+                                     help = 'test the pipeline' )
+
+parser_test.set_defaults( func = test )
+
+# subcommand 'run' parser
+
+parser_run = subparsers.add_parser( 'run',
+                                    help = 'test the pipeline' )
+
+parser_run.set_defaults( func = run )
+
+parser_run.add_argument( '--reads',
+                         action = 'store',
+                         dest = 'reads_file',
+                         required = True,
+                         help = 'FASTA file containing merged, demultiplexed, chimera filtered reads' )
+
+parser_run.add_argument( '--metadata',
+                         action = 'store',
+                         dest = 'metadata_file',
+                         required = True,
+                         help = 'metadata (default, TSV)' )
+
+parser_run.add_argument( '--host-tree',
+                         action = 'store',
+                         dest = 'host_tree_file',
+                         required = True,
+                         help = 'NEWICK file of host tree' )
+
+parser_run.add_argument( '--threads',
+                         action = 'store',
+                         dest = 'threads',
+                         required = False,
+                         help = 'number of threads (default : 1)' )
+
+parser_run.set_defaults( threads = 1 )
+
+parser_run.add_argument( '--sample-id-col',
+                         action = 'store',
+                         dest = 'sample_id_col',
+                         required = False,
+                         help = 'metadata column of sample IDs (default : first column)' )
+
+parser_run.add_argument( '--host-col',
+                         action = 'store',
+                         dest = 'host_col',
+                         required = False,
+                         help = 'metadata column of host taxa (default : \'Host\')' )
+
+parser_run.set_defaults( host_col = 'Host' )
+
+parser_run.add_argument( '--metadata-sep',
+                         action = 'store',
+                         dest = 'metadata_sep',
+                         required = False,
+                         help = 'metadata separator (default : tab)' )
+
+parser_run.set_defaults( metadata_sep = '\t' )
+
+parser_run.add_argument( '--read-name-sep',
+                         action = 'store',
+                         dest = 'read_name_sep',
+                         required = False,
+                         help = 'sample/sequence separator (default : \'_\')' )
+
+parser_run.set_defaults( metadata_sep = '_' )
+
+parser_run.add_argument( '--drop-cols',
+                         action = 'store',
+                         dest = 'drop_cols',
+                         required = False,
+                         help = 'comma separated list of metadata columns to drop (default : none)' )
+
+parser_run.add_argument( '--cutoff',
+                         action = 'store',
+                         dest = 'cutoff',
+                         required = False,
+                         help = 'discard sequences with fewer than n instances (default : 2)' )
+
+parser_run.set_defaults( cutoff = 2 )
+
+# do the argparse dance
+
+if argcomplete_present :
+    argcomplete.autocomplete(parser)
+
+args = parser.parse_args()
+args.func(args)
