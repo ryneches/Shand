@@ -14,3 +14,5 @@ def fasttree( alignment_file, threads=1 ) :
         with open( alignment_file, 'r' ) as infile:
             proc = subprocess.Popen( args, stdout=outfile, stdin=infile )
             proc.wait()
+
+    return tree_file

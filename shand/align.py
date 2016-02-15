@@ -13,3 +13,5 @@ def clustalo( fasta_file, threads=1 ) :
             '--threads=' + str(threads),
             '-o', alignment_file,
             '-l', log_file ]
+
+    return alignment_file
