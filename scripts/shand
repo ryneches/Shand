@@ -23,6 +23,8 @@ def run( args ) :
     """
     if args.drop_cols :
         drop_cols = args.drop_cols.split(',')
+    else :
+        drop_cols = None
 
     print 'creating problem container...'
     p = shand.Problem( threads=args.threads )
