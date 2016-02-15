@@ -4,10 +4,12 @@ from hat_trie import Trie
 import ProgressBar
 import skbio
 from os.path import splitext, exists
+from align import clustalo
+from tree import fasttree
 
 class Problem(object) :
-    def __init__( self ) :
-        pass
+    def __init__( self, threads=1 ) :
+        self.thrads = threads
     def add_reads( self, reads, read_name_sep='_' ) :
         if exists( reads + '_screed' ) :
             print 'reads previously indexed.'
@@ -68,8 +70,11 @@ class Problem(object) :
         print 'writing uniqued records with at least ' + str(cutoff) + ' instances...\n'
         p = ProgressBar.ProgressBar(len(self.trie.keys()))
         basename = splitext( self.reads_path )[0] + '_unique_' + str(cutoff)
-        with open( basename + '.fasta', 'w' ) as f1, \
-             open( basename + '.txt',   'w' ) as f2 :
+        
+        self.unique_seq_file = basename + '.fasta'
+        self.unique_seq_to_sample_file = basename + '.txt'
+        with open( self.unique_seq_file,           'w' ) as f1, \
+             open( self.unique_seq_to_sample_file, 'w' ) as f2 :
             for n,seq in enumerate( self.trie.keys() ) :
                 if n % 10000 == 0 : p.animate( n + 1 )
                 records = self.trie[seq]
@@ -93,3 +98,9 @@ class Problem(object) :
                                           right_index=True,
                                           left_index=True ).groupby( self.host_col ).sum()
         self.host_abundance_table = self.host_count_table.div( self.host_count_table.sum(axis=1), axis=0)
+        
+        # build alignment
+        self.alignment_file = clustalo( self.unique_seq_file, threads=self.threads )
+        # build tree
+        self.guest_tree = fasttree( self.alignment_file, threads=self.threads )
+        
