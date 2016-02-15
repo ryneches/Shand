@@ -8,7 +8,8 @@ from align import clustalo
 from tree import fasttree
 
 class Problem(object) :
-    def __init__( self, threads=1 ) :
+    def __init__( self, name, threads=1 ) :
+        self.name = name
         self.threads = threads
     def add_reads( self, reads, read_name_sep='_' ) :
         if exists( reads + '_screed' ) :
@@ -68,7 +69,7 @@ class Problem(object) :
                 self.trie[seq].append( name ) 
         print 'writing uniqued records with at least ' + str(cutoff) + ' instances...\n'
         p = ProgressBar.ProgressBar(len(self.trie.keys()))
-        basename = splitext( self.reads_path )[0] + '_unique_' + str(cutoff)
+        basename = self.name + '_unique_' + str(cutoff)
         
         self.unique_seq_file = basename + '.fasta'
         self.unique_seq_to_sample_file = basename + '.txt'

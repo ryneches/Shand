@@ -27,7 +27,7 @@ def run( args ) :
         drop_cols = None
 
     print 'creating problem container...'
-    p = shand.Problem( threads=args.threads )
+    p = shand.Problem( args.name, threads=args.threads )
     p.add_reads( args.reads_file, read_name_sep=args.read_name_sep )
     p.add_metadata( args.metadata_file, 
                     sample_id_col=args.sample_id_col,
@@ -59,6 +59,12 @@ parser_run = subparsers.add_parser( 'run',
                                     help = 'test the pipeline' )
 
 parser_run.set_defaults( func = run )
+
+parser_run.add_argument( '--name',
+                         action = 'store',
+                         dest = 'name',
+                         required = True,
+                         help = 'name for this run' )
 
 parser_run.add_argument( '--reads',
                          action = 'store',
