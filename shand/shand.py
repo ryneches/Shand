@@ -104,6 +104,12 @@ class Problem(object) :
                                           left_index=True ).groupby( self.host_col ).sum()
         self.host_abundance_table = self.host_count_table.div( self.host_count_table.sum(axis=1), axis=0)
         
+        # save tables
+        self.count_table.to_csv( self.name + '_count_table.tsv', sep='\t' )
+        self.abundance_table.to_csv( self.name + '_abundance_table.tsv', sep='\t' )
+        self.host_count_table.to_csv( self.name + '_host_count_table.tsv', sep='\t' )
+        self.host_abundance_table.to_csv( self.name + '_host_abundance_table.tsv', sep='\t')
+        
         # build alignment
         print 'building alignment...'
         self.alignment_file = clustalo( self.unique_seq_file, threads=self.threads )
@@ -127,36 +133,22 @@ class Problem(object) :
         internal_nodes = filter( lambda x : len([ tip for tip in x.tips()]) > 3, internal_nodes )
         bar_title = 'computing Hommola cospeciation for sub-clades...'
         p = pyprind.ProgBar( len(internal_nodes), monitor=True, title=bar_title )
-        hommola_results = []
-        hc_cols = [ 'node_id', 'n_links', 'PCC', 'p' ]
-        for n in range( int(self.permutations) ) :
-            hc_cols.append( 'permutation_' + str(n) )
-        for node in self.guest_tree.non_tips() :
-            p.update()
-            leafs = node.subset()
-            PD = self.guest_tree_dmatrix.filter( leafs )
-            links = self.host_count_table[ list( leafs ) ].T
-            n_links = len( filter( bool, links.values.flatten() ) )
-            if n_links < 3 : continue
-            if links.shape[0] < 3 : continue 
-            if PD.shape[0] < 3 : continue
-            hc = hommola_cospeciation( self.host_tree_dmatrix, 
-                                       PD,
-                                       links,
-                                       permutations=self.permutations )
-             
-            
-            result = { 'node_id' : node.id, 
-                       'n_links' : n_links, 
-                       'PCC'     : hc[0],
-                       'p'       : hc[1] }
-            for n,permutation in enumerate(hc[2]) :
-                result[ 'permutation_' + str(n) ] = permutation
-            hommola_results.append( result )
-        self.hommola_results = pd.DataFrame( hommola_results, columns=hc_cols )
-    def save( self ) :
-        self.count_table.to_csv( self.name + '_count_table.tsv', sep='\t' )
-        self.abundance_table.to_csv( self.name + '_abundance_table.tsv', sep='\t' )
-        self.host_count_table.to_csv( self.name + '_host_count_table.tsv', sep='\t' )
-        self.host_abundance_table.to_csv( self.name + '_host_abundance_table.tsv', sep='\t')
-        self.hommola_results.to_csv( self.name + '_hommola_results_table.tsv', sep='\t' )
+        with open( self.name + '_hommola_results_table.tsv', 'w' ) as f :
+            cols = ['node_id', 'n_links', 'leafs', 'PCC', 'p' ]
+            cols = cols + [ 'permutation_' + str(n) for n in range(self.permutations) ]
+            f.write( '\t'.join( cols ) + '\n' )
+            for node in self.guest_tree.non_tips() :
+                p.update()
+                leafs = node.subset()
+                PD = self.guest_tree_dmatrix.filter( leafs )
+                links = self.host_count_table[ list( leafs ) ].T
+                n_links = len( filter( bool, links.values.flatten() ) )
+                if n_links < 3 : continue
+                if links.shape[0] < 3 : continue 
+                if PD.shape[0] < 3 : continue
+                hc = hommola_cospeciation( self.host_tree_dmatrix, 
+                                           PD,
+                                           links,
+                                           permutations=self.permutations )
+                result = [ node.id, n_links, len(leafs), hc[0], hc[1] ] + list(hc[2])
+                f.write( '\t'.join( map( str, result ) ) + '\n' )
