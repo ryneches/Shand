@@ -134,11 +134,11 @@ class Problem(object) :
             if n_links < 3 : continue
             if links.shape[0] < 3 : continue 
             if PD.shape[0] < 3 : continue
-            data.append( ( node, 
+            data.append( ( node, n_links, 
                            hommola_cospeciation( self.host_tree_dmatrix, 
                                                  PD,
                                                  links,
                                                  permutations=10 ) ) )
         
-        for node,result in data :
-            print node.count(), result[0], result[1]
+        for node,n_links,result in sorted( data, key=lambda x : x[2] ) :
+            print node.count(), n_links, result[0], result[1]
