@@ -2,6 +2,7 @@
 
 import shand
 import argparse
+import cPickle
 
 try :
     import argcomplete
@@ -37,7 +38,9 @@ def run( args ) :
     p.add_host_tree( args.host_tree_file )  
     print 'running pipeline...'
     p.run( cutoff=args.cutoff )
-
+    print 'saving results...'
+    p.save()
+    
 # build the parser...
 
 parser = argparse.ArgumentParser(
