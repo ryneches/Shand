@@ -7,7 +7,6 @@ from skbio.stats.evolve import hommola_cospeciation
 from os.path import splitext, exists
 from align import clustalo
 from tree import fasttree
-import cPickle
 
 class Problem(object) :
     def __init__( self, name, threads=1 ) :
@@ -59,7 +58,8 @@ class Problem(object) :
             self.host_tree_dmatrix = tree.tip_tip_distances()
         else :
             raise Exception('metadata contains species not found in host tree : ' + ', '.join(leftovers))
-    def run( self, cutoff=2 ) :
+    def run( self, cutoff=2, permutations=10 ) :
+        self.permutations = permutations
         bar_title = 'building trie...'
         self.trie = Trie()
         p = pyprind.ProgBar( len( self.db ), monitor=True, title=bar_title )
@@ -116,6 +116,8 @@ class Problem(object) :
         print 'loading guest tree...'
         self.guest_tree = skbio.tree.TreeNode.read( self.guest_tree_file, 
                                                     convert_underscores=False )
+        self.guest_tree.assign_ids()
+        
         print 'computing patristic distances...'
         self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
         
@@ -125,7 +127,10 @@ class Problem(object) :
         internal_nodes = filter( lambda x : len([ tip for tip in x.tips()]) > 3, internal_nodes )
         bar_title = 'computing Hommola cospeciation for sub-clades...'
         p = pyprind.ProgBar( len(internal_nodes), monitor=True, title=bar_title )
-        self.hommola_results = []
+        hommola_results = []
+        hc_cols = [ 'node_id', 'n_links', 'PCC', 'p' ]
+        for n in range( int(self.permutations) ) :
+            hc_cols.append( 'permutation_' + str(n) )
         for node in self.guest_tree.non_tips() :
             p.update()
             leafs = node.subset()
@@ -135,14 +140,23 @@ class Problem(object) :
             if n_links < 3 : continue
             if links.shape[0] < 3 : continue 
             if PD.shape[0] < 3 : continue
-            self.hommola_results.append( ( node, n_links, 
-                                           hommola_cospeciation( self.host_tree_dmatrix, 
-                                                                 PD,
-                                                                 links,
-                                                                 permutations=10 ) ) )
+            hc = hommola_cospeciation( self.host_tree_dmatrix, 
+                                       PD,
+                                       links,
+                                       permutations=self.permutations )
+             
+            
+            result = { 'node_id' : node.id, 
+                       'n_links' : n_links, 
+                       'PCC'     : hc[0],
+                       'p'       : hc[1] }
+            for n,permutation in enumerate(hc[2]) :
+                result[ 'permutation_' + str(n) ] = permutation
+            hommola_results.append( result )
+        self.hommola_results = pd.DataFrame( hommola_results, columns=hc_cols )
     def save( self ) :
         self.count_table.to_csv( self.name + '_count_table.tsv', sep='\t' )
         self.abundance_table.to_csv( self.name + '_abundance_table.tsv', sep='\t' )
         self.host_count_table.to_csv( self.name + '_host_count_table.tsv', sep='\t' )
         self.host_abundance_table.to_csv( self.name + '_host_abundance_table.tsv', sep='\t')
-        cPickle.dump( self.hommola_results, open( self.name + '_hommola_results.pickle', 'w' ) )
+        self.hommola_results.to_csv( self.name + '_hommola_results_table.tsv', sep='\t' )

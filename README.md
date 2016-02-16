@@ -15,6 +15,8 @@ already installed on your system :
 * [`scikit-bio`](http://scikit-bio.org/)
 * [`hat-trie`](https://github.com/kmike/hat-trie)
 * [`screed`](https://github.com/ctb/screed)
+* [`pyprind`](https://github.com/rasbt/pyprind)
+* [`psutil`](https://pypi.python.org/pypi/psutil)
 
 You will also need to install a sequence aligner and a tree builder.
 For now, Shand supports [`clustal-omega`](http://www.clustal.org/omega/)
@@ -25,8 +27,8 @@ Shand, you can check to make sure they're available by typing :
 
     $ which clustalo
     /usr/local/bin/clustalo
-    $ which fasttree
-    /usr/local/bin/fasttree
+    $ which FastTreeMP
+    /usr/local/bin/FastTreeMP
 
 Shand will check for these when you launch it and report an error if
 it can't find them.
@@ -123,7 +125,9 @@ the set of sample names to the set of host taxa.
 You can run Shand from within Python or from the command line. I
 recommend running from withing Python using a [`jupyter`](http://jupyter.org/)
 notebook. If you have to manipulate your data to get it ready to put 
-into Shand, a notebook will help keep a record of that.
+into Shand, a notebook will help keep a record of that. The command
+line utility is available if you want to submit jobs to a cluster or a
+cloud instance.
 
 #### Create problem plan 
 
@@ -154,6 +158,13 @@ will need to be able to write to this directory. If your data lives in
 a directory to which you do not have write access, create a symbolic
 link to your data in a directory where you can write, and use the path
 to the link with Shand.
+
+Shand will build a tree from the unique reads found in your data, and
+the node names will be based on the first of each unique sequence it
+finds. So, the read names cannot contain any of the reserved symbols
+in the `NEWICK` format :
+
+    ( ) [ ] ; ,
 
 ##### Attach the metadata
 
