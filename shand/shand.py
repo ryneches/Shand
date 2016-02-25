@@ -100,7 +100,7 @@ class Problem(object) :
         # sample, and merge them (basically, and inner join)
         self.host_count_table = self.count_table.join( 
                                     self.metadata[ self.host_col ] ).groupby( 
-                                        catbutt.metadata[ self.host_col] ).sum()
+                                        self.metadata[ self.host_col] ).sum()
          
         self.host_abundance_table = self.host_count_table.div( self.host_count_table.sum(axis=1), axis=0)
         
