@@ -94,7 +94,7 @@ class Problem(object) :
             if not len(OTUs) >= cutoff : continue
             counts[ OTUs[0] ] = map( lambda x : map( lambda x : x.split(self.read_name_sep)[0], OTUs ).count(x), self.sample_ids )    
         print(p)
-        self.count_table = pd.DataFrame( counts, index=self.metadata[self.sample_ids] )
+        self.count_table = pd.DataFrame( counts, index=self.metadata[self.host_col] )
         self.abundance_table = self.count_table.div( self.count_table.sum( axis=1 ), axis=0 )
         # Take the OTU counts for host taxa with more than one 
         # sample, and merge them (basically, and inner join)
