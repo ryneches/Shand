@@ -94,14 +94,14 @@ class Problem(object) :
             if not len(OTUs) >= cutoff : continue
             counts[ OTUs[0] ] = map( lambda x : map( lambda x : x.split(self.read_name_sep)[0], OTUs ).count(x), self.sample_ids )    
         print(p)
-        self.count_table = pd.DataFrame( counts, index=self.sample_ids )
+        self.count_table = pd.DataFrame( counts, index=self.metadata[self.sample_ids] )
         self.abundance_table = self.count_table.div( self.count_table.sum( axis=1 ), axis=0 )
         # Take the OTU counts for host taxa with more than one 
         # sample, and merge them (basically, and inner join)
-        self.host_count_table = pd.merge( self.count_table,
-                                          pd.DataFrame( self.metadata[self.host_col] ),
-                                          right_index=True,
-                                          left_index=True ).groupby( self.host_col ).sum()
+        self.host_count_table = self.count_table.join( 
+                                    self.metadata[ self.host_col ] ).groupby( 
+                                        catbutt.metadata[ self.host_col] ).sum()
+         
         self.host_abundance_table = self.host_count_table.div( self.host_count_table.sum(axis=1), axis=0)
         
         # save tables
@@ -152,3 +152,4 @@ class Problem(object) :
                                            permutations=self.permutations )
                 result = [ node.id, n_links, len(leafs), hc[0], hc[1] ] + list(hc[2])
                 f.write( '\t'.join( map( str, result ) ) + '\n' )
+        print 'run complete.'
