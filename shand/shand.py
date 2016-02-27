@@ -132,11 +132,9 @@ class Problem(object) :
         self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
         
         # compute Hommola cospeciation
-        internal_nodes = [ tip for tip in self.guest_tree.non_tips() ]
-        # ignore clades smaller than 3
-        internal_nodes = filter( lambda x : len([ tip for tip in x.tips()]) > 3, internal_nodes )
+        internal_nodes = len( [ tip for tip in self.guest_tree.non_tips() ] )
         bar_title = 'computing Hommola cospeciation for sub-clades...'
-        p = pyprind.ProgBar( len(internal_nodes), monitor=True, title=bar_title )
+        p = pyprind.ProgBar( internal_nodes, monitor=True, title=bar_title )
         with open( self.name + '_hommola_results_table.tsv', 'w' ) as f :
             cols = ['node_id', 'n_links', 'leafs', 'PCC', 'p' ]
             cols = cols + [ 'permutation_' + str(n) for n in range(self.permutations) ]
