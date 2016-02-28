@@ -9,9 +9,11 @@ from align import clustalo
 from tree import fasttree
 
 class Problem(object) :
+
     def __init__( self, name, threads=1 ) :
         self.name = name
         self.threads = threads
+
     def add_reads( self, reads, read_name_sep='_' ) :
         if exists( reads + '_screed' ) :
             print 'reads previously indexed.'
@@ -23,6 +25,7 @@ class Problem(object) :
         self.db = db
         self.read_name_sep = read_name_sep
         self.reads_path = reads
+
     def add_metadata( self, metadata_file, 
                       sample_id_col=None, host_col='Host', 
                       sep='\t', drop_cols=None ) :
@@ -61,8 +64,8 @@ class Problem(object) :
             self.host_tree_dmatrix = tree.tip_tip_distances()
         else :
             raise Exception('metadata contains species not found in host tree : ' + ', '.join(leftovers))
-    def run( self, cutoff=2, permutations=10 ) :
-        self.permutations = permutations
+        
+    def find_unique_reads( self, cutoff ) :
         bar_title = 'building trie...'
         self.trie = Trie()
         p = pyprind.ProgBar( len( self.db ), monitor=True, title=bar_title )
@@ -88,6 +91,8 @@ class Problem(object) :
                     f2.write( ','.join(records) + '\n' )
                 p.update()
         print(p)
+
+    def build_count_tables( self, cutoff ) :
         bar_title = 'bulding count table...'
         p = pyprind.ProgBar( len( self.trie.keys() ), monitor=True, title=bar_title )
         counts = {}
@@ -113,7 +118,8 @@ class Problem(object) :
         self.abundance_table.to_csv( self.name + '_abundance_table.tsv', sep='\t' )
         self.host_count_table.to_csv( self.name + '_host_count_table.tsv', sep='\t' )
         self.host_abundance_table.to_csv( self.name + '_host_abundance_table.tsv', sep='\t')
-        
+
+    def build_guest_tree( self ) :
         # build alignment
         print 'building alignment...'
         self.alignment_file = clustalo( self.unique_seq_file, threads=self.threads )
@@ -130,7 +136,10 @@ class Problem(object) :
         
         print 'computing patristic distances...'
         self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
-        
+        print 'writing distance matrix...'
+        self.guest_tree_dmatrix.write( self.name + '_guest_tree_distances.tsv' )         
+
+    def predict_cospeciation( self ) :
         # compute Hommola cospeciation
         internal_nodes = len( [ tip for tip in self.guest_tree.non_tips() ] )
         bar_title = 'computing Hommola cospeciation for sub-clades...'
@@ -154,4 +163,11 @@ class Problem(object) :
                 result = [ node.id, n_links, len(leafs), hc[0], hc[1] ] + list(hc[2])
                 f.write( '\t'.join( map( str, result ) ) + '\n' )
                 p.update()
-        print 'run complete.'
+                
+    def run( self, cutoff=2, permutations=10 ) :
+        self.permutations = permutations
+        self.find_unique_reads( cutoff )
+        self.build_count_tables( cutoff ) 
+        self.build_guest_tree()
+        self.predict_cospeciation()        
+        print '\nrun complete.'
