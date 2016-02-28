@@ -67,12 +67,12 @@ class Problem(object) :
         self.trie = Trie()
         p = pyprind.ProgBar( len( self.db ), monitor=True, title=bar_title )
         for n,name in enumerate( self.db ) :
-            p.update()
             demul_name, readnumber = name.split( self.read_name_sep )
             if demul_name in self.sample_ids :
                 seq = unicode( self.db[name].sequence )
                 if not self.trie.__contains__( seq ) : self.trie[seq] = []
                 self.trie[seq].append( name ) 
+            p.update()
         print(p)
         basename = self.name + '_unique_' + str(cutoff)
         self.unique_seq_file = basename + '.fasta'
@@ -82,20 +82,20 @@ class Problem(object) :
         with open( self.unique_seq_file,           'w' ) as f1, \
              open( self.unique_seq_to_sample_file, 'w' ) as f2 :
             for n,seq in enumerate( self.trie.keys() ) :
-                p.update()
                 records = self.trie[seq]
                 if len(records) >= cutoff :
                     f1.write( '>' + records[0] + '\n' + seq + '\n' )
                     f2.write( ','.join(records) + '\n' )
+                p.update()
         print(p)
         bar_title = 'bulding count table...'
         p = pyprind.ProgBar( len( self.trie.keys() ), monitor=True, title=bar_title )
         counts = {}
         for n,record in enumerate( self.trie.keys() ) :
-            p.update()
             OTUs = self.trie[record]
             if not len(OTUs) >= cutoff : continue
             counts[ OTUs[0] ] = map( lambda x : map( lambda x : x.split(self.read_name_sep)[0], OTUs ).count(x), self.sample_ids )    
+            p.update()
         print(p)
         self.count_table = pd.DataFrame( counts, index=self.sample_ids )
         self.count_table.index.name = self.sample_id_col
@@ -140,7 +140,6 @@ class Problem(object) :
             cols = cols + [ 'permutation_' + str(n) for n in range(self.permutations) ]
             f.write( '\t'.join( cols ) + '\n' )
             for node in self.guest_tree.non_tips() :
-                p.update()
                 leafs = node.subset()
                 PD = self.guest_tree_dmatrix.filter( leafs )
                 links = self.host_count_table[ list( leafs ) ].T
@@ -154,4 +153,5 @@ class Problem(object) :
                                            permutations=self.permutations )
                 result = [ node.id, n_links, len(leafs), hc[0], hc[1] ] + list(hc[2])
                 f.write( '\t'.join( map( str, result ) ) + '\n' )
+                p.update()
         print 'run complete.'
