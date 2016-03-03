@@ -36,7 +36,7 @@ def run( args ) :
                     drop_cols=drop_cols )
     p.add_host_tree( args.host_tree_file )  
     print 'running pipeline...'
-    p.run( cutoff=args.cutoff )
+    p.run( cutoff=args.cutoff, max_tree_scale=args.max_tree_scale )
     
 # build the parser...
 
@@ -87,6 +87,7 @@ parser_run.add_argument( '--host-tree',
 parser_run.add_argument( '--threads',
                          action = 'store',
                          dest = 'threads',
+                         type = int,
                          required = False,
                          help = 'number of threads (default : 1)' )
 
@@ -131,8 +132,17 @@ parser_run.add_argument( '--drop-cols',
 parser_run.add_argument( '--cutoff',
                          action = 'store',
                          dest = 'cutoff',
+                         type = int,
                          required = False,
                          help = 'discard sequences with fewer than n instances (default : 2)' )
+
+parser_run.add_argument( '--max-tree-scale',
+                         action = 'store',
+                         dest = 'max_tree_scale',
+                         type = lambda x : float(x),
+                         default = 0.1,
+                         required = False,
+                         help = 'maximum size of subtree considered for cospeciation (default : 0.1)' )
 
 parser_run.set_defaults( cutoff = 2 )
 

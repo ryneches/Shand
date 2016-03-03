@@ -139,7 +139,7 @@ class Problem(object) :
         print 'writing distance matrix...'
         self.guest_tree_dmatrix.write( self.name + '_guest_tree_distances.tsv' )         
 
-    def predict_cospeciation( self ) :
+    def predict_cospeciation( self, max_tree_size ) :
         # compute Hommola cospeciation
         internal_nodes = len( [ tip for tip in self.guest_tree.non_tips() ] )
         bar_title = 'computing Hommola cospeciation for sub-clades...'
@@ -154,6 +154,7 @@ class Problem(object) :
                 links = self.host_count_table[ list( leafs ) ].T
                 n_links = len( filter( bool, links.values.flatten() ) )
                 if n_links < 3 : continue
+                if n_links > max_tree_size : continue
                 if links.shape[0] < 3 : continue 
                 if PD.shape[0] < 3 : continue
                 hc = hommola_cospeciation( self.host_tree_dmatrix, 
@@ -164,10 +165,11 @@ class Problem(object) :
                 f.write( '\t'.join( map( str, result ) ) + '\n' )
                 p.update()
                 
-    def run( self, cutoff=2, permutations=10 ) :
+    def run( self, cutoff=2, permutations=10, max_tree_scale=0.1 ) :
         self.permutations = permutations
         self.find_unique_reads( cutoff )
         self.build_count_tables( cutoff ) 
         self.build_guest_tree()
-        self.predict_cospeciation()        
+        max_tree_size = len(self.guest_tree.subset()) * max_tree_scale
+        self.predict_cospeciation( max_tree_size )        
         print '\nrun complete.'
