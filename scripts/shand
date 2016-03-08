@@ -36,7 +36,9 @@ def run( args ) :
                     drop_cols=drop_cols )
     p.add_host_tree( args.host_tree_file )  
     print 'running pipeline...'
-    p.run( cutoff=args.cutoff, max_tree_scale=args.max_tree_scale )
+    p.run( cutoff=args.cutoff, 
+           max_tree_scale=args.max_tree_scale,
+           permutations=args.permutations )
     
 # build the parser...
 
@@ -135,6 +137,14 @@ parser_run.add_argument( '--cutoff',
                          type = int,
                          required = False,
                          help = 'discard sequences with fewer than n instances (default : 2)' )
+
+parser_run.add_argument( '--permutations',
+                         action = 'store',
+                         dest = 'permutations',
+                         type = int,
+                         default = 10,
+                         required = False,
+                         help = 'number of permutation tests used to estimate significance of correlation (default : 10)' )
 
 parser_run.add_argument( '--max-tree-scale',
                          action = 'store',
