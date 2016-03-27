@@ -3,7 +3,7 @@ import skbio
 from scipy.stats import pearsonr
 from itertools import combinations
 import random
-from numpy import array
+from numpy import array, zeros
 
 def foundon( df ) :
     s = df.unstack()
@@ -24,19 +24,29 @@ def host_guest_distances( host_dmatrix,
     assert set( host_dmatrix.ids ) == set( links.index )
     assert set( guest_dmatrix.ids ) == set( links.columns )
 
-    F = foundon( links )
-
-    assert len(F) > 3
+    nlinks = ( links.values > 0 ).sum()
+    a = zeros( nlinks * ( nlinks - 1 ) / 2 )
+    b = zeros( nlinks * ( nlinks - 1 ) / 2 )
     
-    a,b = [],[]
-    for (i,j),(k,l) in combinations( F, 2 ) :
-        if shuffled :
-            i = random.choice( guest_dmatrix.index )
-            j = random.choice( host_dmatrix.index )
-            k = random.choice( guest_dmatrix.index )
-            l = random.choice( host_dmatrix.index )
-        a.append( host_dmatrix[ j, l ] )
-        b.append( guest_dmatrix[ i, k ] )
+    if not shuffled :
+        F = foundon( links )
+        
+        assert len(F) > 3
+        
+        for n,((i,j),(k,l)) in enumerate( combinations( F, 2 ) ) :
+            a[n] = host_dmatrix[ j, l ]
+            b[n] = guest_dmatrix[ i, k ]
+        
+    else :
+        
+        for n in range( nlinks ) :
+            i = random.choice( guest_dmatrix.ids )
+            j = random.choice( host_dmatrix.ids )
+            k = random.choice( guest_dmatrix.ids )
+            l = random.choice( host_dmatrix.ids )
+            a[n] = host_dmatrix[ j, l ]
+            b[n] = guest_dmatrix[ i, k ]
+ 
     return ( a, b )
 
 def hommola( host_dmatrix,
@@ -47,14 +57,14 @@ def hommola( host_dmatrix,
     a,b = host_guest_distances( host_dmatrix, guest_dmatrix, links )
     pcc, p = pearsonr( a, b )
     
-    prm = []
-    for n in range(len(permutations)) :
+    prm = zeros( permutations )
+    for n in range(permutations) :
         a,b = host_guest_distances( host_dmatrix,
                                     guest_dmatrix,
                                     links,
-                                    shuffle=False )
-        prm.append( pearsonr( a, b )[0] )
-    
-    p_value = ( ( array(prm) >= pcc ).sum() + 1 ) / ( permutations + 1 )
+                                    shuffled=True )
+        prm[n] = ( pearsonr( a, b )[0] )
+
+    p_value = ( ( array(prm) >= pcc ).sum() + 1 ) / float( permutations + 1 )
     
     return pcc, p_value, prm
