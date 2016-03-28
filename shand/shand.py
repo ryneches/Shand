@@ -7,6 +7,7 @@ from skbio.stats.evolve import hommola_cospeciation
 from os.path import splitext, exists
 from align import clustalo
 from tree import fasttree
+import stats
 
 class Problem(object) :
 
@@ -138,30 +139,30 @@ class Problem(object) :
         self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
         print 'writing distance matrix...'
         self.guest_tree_dmatrix.write( self.name + '_guest_tree_distances.tsv' )         
-
+    
     def predict_cospeciation( self, max_tree_size ) :
-        # compute Hommola cospeciation
         internal_nodes = len( [ tip for tip in self.guest_tree.non_tips() ] )
         bar_title = 'computing Hommola cospeciation for sub-clades...'
         p = pyprind.ProgBar( internal_nodes, monitor=True, title=bar_title )
         with open( self.name + '_hommola_results_table.tsv', 'w' ) as f :
-            cols = ['node_id', 'n_links', 'leafs', 'PCC', 'p' ]
-            cols = cols + [ 'permutation_' + str(n) for n in range(self.permutations) ]
+            cols = [ 'node_id', 'n_links', 'leafs', 'r',
+                     'r_p', 'roh', 'roh_p', 'tau', 'tau_p' ]
             f.write( '\t'.join( cols ) + '\n' )
             for node in self.guest_tree.non_tips() :
-                leafs = node.subset()
-                PD = self.guest_tree_dmatrix.filter( leafs )
-                links = self.host_count_table[ list( leafs ) ].T
-                n_links = len( filter( bool, links.values.flatten() ) )
-                if n_links < 3 : continue
-                if n_links > max_tree_size : continue
-                if links.shape[0] < 3 : continue 
-                if PD.shape[0] < 3 : continue
-                hc = hommola_cospeciation( self.host_tree_dmatrix, 
-                                           PD,
-                                           links,
-                                           permutations=self.permutations )
-                result = [ node.id, n_links, len(leafs), hc[0], hc[1] ] + list(hc[2])
+                clade = node.copy()
+                clade.index_tree()
+                clade_size = len(list(clade.tips()))
+                if clade_size < 3 : continue
+                clade_dmatrix = clade.tip_tip_distances()
+                links = self.host_count_table[ list( clade_dmatrix.ids ) ]
+                nlinks = ( links.values > 0 ).sum()
+                if nlinks < 3 : continue
+                t = stats.all_tests( self.host_tree_dmatrix, 
+                                     clade_dmatrix,
+                                     links,
+                                     permutations=self.permutations )
+                result = [ node.id, nlinks, clade_size, t['r'], t['r_p'],
+                           t['roh'], t['roh_p'], t['tau'], t['tau_p'] ]
                 f.write( '\t'.join( map( str, result ) ) + '\n' )
                 p.update()
                 
