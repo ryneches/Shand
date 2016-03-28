@@ -3,7 +3,6 @@ from screed import read_fasta_sequences, ScreedDB
 from hat_trie import Trie
 import pyprind
 import skbio
-from skbio.stats.evolve import hommola_cospeciation
 from os.path import splitext, exists
 from align import clustalo
 from tree import fasttree
