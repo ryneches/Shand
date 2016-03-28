@@ -133,19 +133,15 @@ class Problem(object) :
         self.guest_tree = skbio.tree.TreeNode.read( self.guest_tree_file, 
                                                     convert_underscores=False )
         self.guest_tree.assign_ids()
-        
-        print 'computing patristic distances...'
-        self.guest_tree_dmatrix = self.guest_tree.tip_tip_distances()
-        print 'writing distance matrix...'
-        self.guest_tree_dmatrix.write( self.name + '_guest_tree_distances.tsv' )         
-    
+        self.guest_tree.index_tree()
+         
     def predict_cospeciation( self, max_tree_size ) :
         internal_nodes = len( [ tip for tip in self.guest_tree.non_tips() ] )
         bar_title = 'computing Hommola cospeciation for sub-clades...'
         p = pyprind.ProgBar( internal_nodes, monitor=True, title=bar_title )
         with open( self.name + '_hommola_results_table.tsv', 'w' ) as f :
             cols = [ 'node_id', 'n_links', 'leafs', 'r',
-                     'r_p', 'roh', 'roh_p', 'tau', 'tau_p' ]
+                     'p_r', 'roh', 'p_roh', 'tau', 'p_tau' ]
             f.write( '\t'.join( cols ) + '\n' )
             for node in self.guest_tree.non_tips() :
                 clade = node.copy()
@@ -160,8 +156,8 @@ class Problem(object) :
                                      clade_dmatrix,
                                      links,
                                      permutations=self.permutations )
-                result = [ node.id, nlinks, clade_size, t['r'], t['r_p'],
-                           t['roh'], t['roh_p'], t['tau'], t['tau_p'] ]
+                result = [ node.id, nlinks, clade_size, t['r'], t['p_r'],
+                           t['roh'], t['p_roh'], t['tau'], t['p_tau'] ]
                 f.write( '\t'.join( map( str, result ) ) + '\n' )
                 p.update()
                 
