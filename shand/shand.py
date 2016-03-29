@@ -183,16 +183,14 @@ class Problem(object) :
                      'clade_size'   : clade_size }
             work_queue.put(task)
         
-        for w in xrange( self.threads ) :
-            work_queue.put( 'STOP' )
-        
         print 'creating worker threads...'
         for w in xrange( self.threads ) :
+            work_queue.put( 'STOP' )
             p = Process( target = worker, args = ( work_queue, done_queue ) )
             p.start()
             processes.append( p )
         
-        print 'launching ' + str(self.threads) + ' threads...'
+        print 'launching ' + str(self.threads) + ' threads for ' + str(work_queue.qsize()) + ' tasks...'
         for p in processes :
             p.join()
 
