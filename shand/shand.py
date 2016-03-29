@@ -139,9 +139,7 @@ class Problem(object) :
     def predict_cospeciation( self, max_tree_size ) :
                 
         def worker( work_queue, done_queue ) :
-            print 'thread started...'
             for task in iter( work_queue.get, 'STOP' ) :
-                print 'doing something...'
                 h  = task['host_dmatrix']
                 ct = task['clade_tree']
                 l  = task['links']
@@ -156,7 +154,8 @@ class Problem(object) :
                     done_queue.put(t)
                 except AssertionError :
                     done_queue.put(False)
-        
+                print t['pid'] + ' did something...'       
+ 
         work_queue = Queue()
         done_queue = Queue()
         processes = []
