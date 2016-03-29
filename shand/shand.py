@@ -162,7 +162,6 @@ class Problem(object) :
         internal_nodes = len( list( self.guest_tree.non_tips() ) )
         bar_title = 'building work queue...'
         progbar = pyprind.ProgBar( internal_nodes, monitor=True, title=bar_title )
-
         for node in self.guest_tree.non_tips() :
             clade = node.copy()
             clade.index_tree()
@@ -183,12 +182,14 @@ class Problem(object) :
             work_queue.put(task)
             progbar.update()
 
+        print 'creating worker threads...'
         for w in xrange( self.threads ) :
             p = Process( target = worker, args = ( work_queue, done_queue ) )
             p.start()
             processes.append( p )
             work_queue.put( 'STOP' )
         
+        print 'launching ' + str(self.threads) + ' threads...'
         for p in processes :
             p.join()
 
@@ -197,12 +198,12 @@ class Problem(object) :
         n_results = done_queue.qsize() - 1
         bar_title = 'writing results...'
         progbar = pyprind.ProgBar( n_results, monitor=True, title=bar_title )
-
         with open( self.name + '_cospeciation_results_table.tsv', 'w' ) as f :
             cols = [ 'node_id', 'pid', 'n_links', 'clade_size', 'r',
                      'p_r', 'roh', 'p_roh', 'tau', 'p_tau' ]
             f.write( '\t'.join( cols ) + '\n' )
             for task in iter( done_queue.get, 'STOP' ) :
+                if not task : continue
                 for item in cols :
                     result.append( str(task[item]) )
                 f.write( '\t'.join( result ) + '\n' )
