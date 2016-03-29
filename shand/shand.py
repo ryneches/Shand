@@ -154,7 +154,7 @@ class Problem(object) :
                     done_queue.put(t)
                 except AssertionError :
                     done_queue.put(False)
-                print t['pid'] + ' did something...'       
+            print t['pid'] + ' finished.'
  
         work_queue = Queue()
         done_queue = Queue()
