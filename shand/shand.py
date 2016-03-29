@@ -152,15 +152,22 @@ class Problem(object) :
                 links = self.host_count_table[ list( clade_dmatrix.ids ) ]
                 nlinks = ( links.values > 0 ).sum()
                 if nlinks < 3 : continue
-                t = stats.all_tests( self.host_tree_dmatrix, 
-                                     clade_dmatrix,
-                                     links,
-                                     permutations=self.permutations )
-                result = [ node.id, nlinks, clade_size, t['r'], t['p_r'],
-                           t['roh'], t['p_roh'], t['tau'], t['p_tau'] ]
-                f.write( '\t'.join( map( str, result ) ) + '\n' )
-                p.update()
-                
+                try :
+                    t = stats.all_tests( self.host_tree_dmatrix, 
+                                         clade_dmatrix,
+                                         links,
+                                         permutations=self.permutations )
+         
+                    result = [ node.id, nlinks, clade_size, t['r'], t['p_r'],
+                               t['roh'], t['p_roh'], t['tau'], t['p_tau'] ]
+                    f.write( '\t'.join( map( str, result ) ) + '\n' )
+                    p.update()
+                except AssertionError :
+                    print clade
+                    print node
+                    print clade_size, nlinks, node.id
+                    break                
+
     def run( self, cutoff=2, permutations=10, max_tree_scale=0.1 ) :
         self.permutations = permutations
         self.find_unique_reads( cutoff )
