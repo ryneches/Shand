@@ -147,8 +147,8 @@ class Problem(object) :
                 clade = node.copy()
                 clade.index_tree()
                 clade_size = len(list(clade.tips()))
-                if clade_size =< 3 : continue
-                if clade_size => max_tree_size : continue
+                if clade_size <= 3 : continue
+                if clade_size >= max_tree_size : continue
                 clade_dmatrix = clade.tip_tip_distances()
                 links = self.host_count_table[ list( clade_dmatrix.ids ) ]
                 nlinks = ( links.values > 0 ).sum()
