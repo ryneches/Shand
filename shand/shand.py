@@ -152,7 +152,7 @@ class Problem(object) :
                 clade_dmatrix = clade.tip_tip_distances()
                 links = self.host_count_table[ list( clade_dmatrix.ids ) ]
                 nlinks = ( links.values > 0 ).sum()
-                if nlinks =< 3 : continue
+                if nlinks <= 3 : continue
                 try :
                     t = stats.all_tests( self.host_tree_dmatrix, 
                                          clade_dmatrix,
