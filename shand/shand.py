@@ -205,11 +205,12 @@ class Problem(object) :
             f.write( '\t'.join( cols ) + '\n' )
             for task in iter( done_queue.get, 'STOP' ) :
                 if not task : continue
+                result = []
                 for item in cols :
                     result.append( str(task[item]) )
                 f.write( '\t'.join( result ) + '\n' )
                 progbar.update()
-
+    
     def run( self, cutoff=2, permutations=10, max_tree_scale=0.1 ) :
         self.permutations = permutations
         self.find_unique_reads( cutoff )
