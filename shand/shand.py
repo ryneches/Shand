@@ -166,7 +166,7 @@ class Problem(object) :
         for node in self.guest_tree.non_tips() :
             clade = node.copy()
             clade.index_tree()
-            clade_leafs = list(clade.tips())
+            clade_leafs = [ tip.name for tip in clade.tips() ]
             clade_size = len(clade_leafs)
             if clade_size <= 3 : continue
             if clade_size >= max_tree_size : continue
