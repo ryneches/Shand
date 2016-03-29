@@ -165,6 +165,7 @@ class Problem(object) :
         bar_title = 'building work queue...'
         progbar = pyprind.ProgBar( internal_nodes, monitor=True, title=bar_title )
         for node in self.guest_tree.non_tips() :
+            progbar.update()
             clade = node.copy()
             clade.index_tree()
             clade_leafs = [ tip.name for tip in clade.tips() ]
@@ -182,14 +183,15 @@ class Problem(object) :
                      'n_links'      : n_links,
                      'clade_size'   : clade_size }
             work_queue.put(task)
-            progbar.update()
-
+        
+        for w in xrange( self.threads ) :
+            work_queue.put( 'STOP' )
+        
         print 'creating worker threads...'
         for w in xrange( self.threads ) :
             p = Process( target = worker, args = ( work_queue, done_queue ) )
             p.start()
             processes.append( p )
-            work_queue.put( 'STOP' )
         
         print 'launching ' + str(self.threads) + ' threads...'
         for p in processes :
