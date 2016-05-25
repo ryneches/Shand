@@ -112,7 +112,6 @@ cdef class QuickTree :
         cdef float d_b = self.get_distance_to_root( b )
         return abs( d_a - d_b ) 
 
-    @cython.boundscheck(False)     
     def distances( self, long[:,:] ids ) :
         if not ids.shape[1] == 2 : 
             raise Exception( 'expected (n,2) array', 
@@ -122,6 +121,14 @@ cdef class QuickTree :
         _distances( self.data, ids, result )
         return result
          
+    def distances_by_name( self, id_pairs ) :
+        shape = ( len(id_pairs), len(id_pairs[0]) )
+        ids = np.zeros( shape, dtype=float )
+        for n,(a,b) in enumerate(id_pairs) :
+            ids[n][0] = self.leafs[a]
+            ids[n][1] = self.leafs[b]
+        return self.distances( ids )
+
     def dump_array( self ) :
         for n in range(self.length) :
             print 'id : %d ->' % n
