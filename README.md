@@ -2,6 +2,8 @@
 
 A pipeline for investigating cospeciation in microbiomes
 
+[![License](https://img.shields.io/badge/license-BSD--3-blue.svg)](https://raw.githubusercontent.com/ryneches/Shand/master/LICENSE)
+
 ### Installation
 
 Installing the pipeline is very simple :
