@@ -2,19 +2,18 @@ import pandas as pd
 from screed import read_fasta_sequences, ScreedDB
 from hat_trie import Trie
 import pyprind
-import skbio
 from os.path import splitext, exists
 from align import clustalo
 from tree import fasttree
 import stats
-from multiprocessing import Process, Queue, current_process
+from SuchTree import SuchTree, SuchLinkedTrees
 
 class Problem(object) :
 
     def __init__( self, name, threads=1 ) :
         self.name = name
         self.threads = threads
-
+    
     def add_reads( self, reads, read_name_sep='_' ) :
         if exists( reads + '_screed' ) :
             print 'reads previously indexed.'
@@ -26,7 +25,7 @@ class Problem(object) :
         self.db = db
         self.read_name_sep = read_name_sep
         self.reads_path = reads
-
+    
     def add_metadata( self, metadata_file, 
                       sample_id_col=None, host_col='Host', 
                       sep='\t', drop_cols=None ) :
@@ -56,15 +55,11 @@ class Problem(object) :
             raise Exception('sample IDs contain reserved characters : ' + str(newick_clash) )
         
     def add_host_tree( self, host_tree_file ) :
-        tree = skbio.tree.TreeNode.read(host_tree_file)
+        host_tree = SuchTree( host_tree_file )
         # fail if there are missing taxa in the host tree
-        leftovers = set(self.metadata[self.host_col]) - set([ tip.name for tip in tree.tips() ])
-        if not leftovers :
-            tree = tree.shear( list( set( self.metadata[self.host_col] ) ) )
-            self.host_tree = tree
-            self.host_tree_dmatrix = tree.tip_tip_distances()
-        else :
+        if set(self.metadata[self.host_col]) - set( host_tree.leafs.keys() ) :
             raise Exception('metadata contains species not found in host tree : ' + ', '.join(leftovers))
+        self.host_tree = host_tree
         
     def find_unique_reads( self, cutoff ) :
         bar_title = 'building trie...'
@@ -131,10 +126,7 @@ class Problem(object) :
         
         # load guest tree
         print 'loading guest tree...'
-        self.guest_tree = skbio.tree.TreeNode.read( self.guest_tree_file, 
-                                                    convert_underscores=False )
-        self.guest_tree.assign_ids()
-        self.guest_tree.index_tree()
+        self.guest_tree = SuchTree( self.guest_tree_file )
          
     def predict_cospeciation( self, max_tree_size ) :
                 
