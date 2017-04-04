@@ -5,7 +5,6 @@ import pyprind
 from os.path import splitext, exists
 from align import clustalo
 from tree import fasttree
-import stats
 from SuchTree import SuchTree, SuchLinkedTrees
 
 class Problem(object) :
@@ -129,85 +128,18 @@ class Problem(object) :
         self.guest_tree = SuchTree( self.guest_tree_file )
          
     def predict_cospeciation( self, max_tree_size ) :
-                
-        def worker( work_queue, done_queue ) :
-            for task in iter( work_queue.get, 'STOP' ) :
-                h  = task['host_dmatrix']
-                ct = task['clade_tree']
-                l  = task['links']
-                M  = task['permutations']
-                c  = ct.tip_tip_distances()
-                try :
-                    t = stats.all_tests( h, c, l, permutations=M )
-                    t['pid'] = current_process().name
-                    t['node_id'] = task['node_id']
-                    t['n_links'] = task['n_links']
-                    t['clade_size'] = task['clade_size']
-                    done_queue.put(t)
-                except AssertionError :
-                    done_queue.put(False)
-            return True
- 
-        work_queue = Queue()
-        done_queue = Queue()
-        processes = []
         
-        internal_nodes = len( list( self.guest_tree.non_tips() ) )
-        bar_title = 'building work queue...'
-        progbar = pyprind.ProgBar( internal_nodes, monitor=True, title=bar_title )
-        for node in self.guest_tree.non_tips() :
-            progbar.update()
-            clade = node.copy()
-            clade.index_tree()
-            clade_leafs = [ tip.name for tip in clade.tips() ]
-            clade_size = len(clade_leafs)
-            if clade_size <= 3 : continue
-            if clade_size >= max_tree_size : continue
-            links = self.host_count_table[ clade_leafs ]
-            n_links = ( links.values > 0 ).sum()
-            if n_links <= 3 : continue
-            task = { 'host_dmatrix' : self.host_tree_dmatrix,
-                     'clade_tree'   : clade,
-                     'links'        : links,
-                     'permutations' : self.permutations,
-                     'node_id'      : node.id,
-                     'n_links'      : n_links,
-                     'clade_size'   : clade_size }
-            work_queue.put(task)
+        # build linked trees
+        print 'building linked trees...'
+        self.LinkedTrees = SuchLinkedTrees( self.host_tree, self.guest_tree, self.links )
         
-        print 'creating worker threads...'
-        for w in xrange( self.threads ) :
-            work_queue.put( 'STOP' )
-            p = Process( target = worker, args = ( work_queue, done_queue ) )
-            p.start()
-            processes.append( p )
+        # leaving this unimplemented here; see notebook 
         
-        print 'launching ' + str(self.threads) + ' threads for ' + str(work_queue.qsize()) + ' tasks...'
-        for p in processes :
-            p.join()
-
-        done_queue.put( 'STOP' )
-        
-        n_results = done_queue.qsize() - 1
-        bar_title = 'writing results...'
-        progbar = pyprind.ProgBar( n_results, monitor=True, title=bar_title )
-        with open( self.name + '_cospeciation_results_table.tsv', 'w' ) as f :
-            cols = [ 'node_id', 'pid', 'n_links', 'clade_size', 'r',
-                     'p_r', 'roh', 'p_roh', 'tau', 'p_tau' ]
-            f.write( '\t'.join( cols ) + '\n' )
-            for task in iter( done_queue.get, 'STOP' ) :
-                if not task : continue
-                result = []
-                for item in cols :
-                    result.append( str(task[item]) )
-                f.write( '\t'.join( result ) + '\n' )
-                progbar.update()
-    
     def run( self, cutoff=2, permutations=10, max_tree_scale=0.1 ) :
         self.permutations = permutations
         self.find_unique_reads( cutoff )
         self.build_count_tables( cutoff ) 
         self.build_guest_tree()
-        max_tree_size = len(self.guest_tree.subset()) * max_tree_scale
-        self.predict_cospeciation( max_tree_size )        
+        #max_tree_size = len(self.guest_tree.subset()) * max_tree_scale
+        #self.predict_cospeciation( max_tree_size )        
         print '\nrun complete.'

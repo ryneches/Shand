@@ -17,12 +17,10 @@ setup(
         'pandas',
         'screed',
         'hat_trie',
-        'scikit-bio',
         'pyprind',
         'psutil',
-        'cython'
+        'SuchTree'
     ],
     zip_safe=False,
-    ext_modules = cythonize( 'shand/quicktree.pyx' ),
     test_suite = 'nose.collector'
 )
